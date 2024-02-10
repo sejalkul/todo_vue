@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>To-Do List</title>
+   <!-- Link to external CSS file -->
+   <link rel="stylesheet" href="styles.css">
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Protest+Riot&family=Ysabeau+SC:wght@500&display=swap" rel="stylesheet">
+  <!-- Include Vue.js -->
+  <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+</head>
+<body>
+
+<div id="app">
+  <h1>To-Do List</h1>
+
+  <!-- Add Task Form -->
+  <form @submit.prevent="addTask">
+    <label for="task">New Task:</label>
+    <input type="text" id="task" v-model="newTask" required>
+    <button type="submit">Add Task</button>
+  </form>
+
+  <!-- To-Do List -->
+  <div>
+    <h2>Task To Be Done</h2>
+    <ul>
+      <li v-for="task in toDoTasks" :key="task.id">
+        <input type="checkbox" v-model="task.completed" @change="completeTask(task.id)">
+        <span :style="{ 'text-decoration': task.completed ? 'line-through' : 'none' }">
+          {{ task.text }} (Created on: {{ task.createdAt }})
+        </span>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Completed Tasks -->
+  <div>
+    <h2>Completed Tasks</h2>
+    <ul>
+      <li v-for="task in completedTasks" :key="task.id">
+        <input type="checkbox" v-model="task.completed" @change="completeTask(task.id)">
+        <span :style="{ 'text-decoration': 'line-through' }">
+          {{ task.text }} (Completed on: {{ task.completedAt }})
+        </span>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<script>
+new Vue({
+  el: '#app',
+  data: {
+    newTask: '',
+    tasks: [],
+  },
+  computed: {
+    completedTasks() {
+      return this.tasks.filter(task => task.completed);
+    },
+    toDoTasks() {
+      return this.tasks.filter(task => !task.completed);
+    },
+  },
+  methods: {
+    addTask() {
+      if (this.newTask.trim() !== '') {
+        const newTask = {
+          id: Date.now(),
+          text: this.newTask.trim(),
+          createdAt: new Date().toLocaleString(),
+          completed: false,
+          completedAt: null,
+        };
+
+        this.tasks.push(newTask);
+        this.newTask = '';
+
+        // Save tasks to local storage
+        localStorage.setItem('tasks', JSON.stringify(this.tasks));
+      }
+    },
+    completeTask(id) {
+      const taskIndex = this.tasks.findIndex(task => task.id === id);
+
+      if (taskIndex !== -1) {
+        this.tasks[taskIndex].completedAt = this.tasks[taskIndex].completed ? new Date().toLocaleString() : null;
+
+        // Save tasks to local storage
+        localStorage.setItem('tasks', JSON.stringify(this.tasks));
+      }
+    },
+  },
+  mounted() {
+    // Retrieve tasks from local storage on component mount
+    const storedTasks = localStorage.getItem('tasks');
+
+    if (storedTasks) {
+      this.tasks = JSON.parse(storedTasks);
+    }
+  },
+});
+</script>
+
+</body>
+</html>
